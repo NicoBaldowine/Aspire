@@ -4,19 +4,27 @@ import { Ionicons } from '@expo/vector-icons';
 export default function ChallengeListItem({ challenge, onPress, onDelete }) {
   // Function to get a darker shade of the background color
   const getDarkerShade = (hexColor) => {
-    const hex = hexColor.replace('#', '');
-    const r = parseInt(hex.substring(0, 2), 16);
-    const g = parseInt(hex.substring(2, 4), 16);
-    const b = parseInt(hex.substring(4, 6), 16);
+    if (!hexColor) return '#000000';
     
-    const darkerR = Math.floor(r * 0.7);
-    const darkerG = Math.floor(g * 0.7);
-    const darkerB = Math.floor(b * 0.7);
-    
-    return `#${darkerR.toString(16).padStart(2, '0')}${darkerG.toString(16).padStart(2, '0')}${darkerB.toString(16).padStart(2, '0')}`;
+    try {
+      const hex = hexColor.replace('#', '');
+      const r = parseInt(hex.substring(0, 2), 16);
+      const g = parseInt(hex.substring(2, 4), 16);
+      const b = parseInt(hex.substring(4, 6), 16);
+      
+      const darkerR = Math.floor(r * 0.7);
+      const darkerG = Math.floor(g * 0.7);
+      const darkerB = Math.floor(b * 0.7);
+      
+      return `#${darkerR.toString(16).padStart(2, '0')}${darkerG.toString(16).padStart(2, '0')}${darkerB.toString(16).padStart(2, '0')}`;
+    } catch (error) {
+      return '#000000';
+    }
   };
 
   const calculateProgress = () => {
+    if (!challenge?.startDate) return { progress: 0, daysLeft: 21 };
+
     const startDate = new Date(challenge.startDate);
     const now = new Date();
     const daysPassed = Math.floor((now - startDate) / (1000 * 60 * 60 * 24));
@@ -26,6 +34,7 @@ export default function ChallengeListItem({ challenge, onPress, onDelete }) {
   };
 
   const { progress, daysLeft } = calculateProgress();
+  const darkerColor = getDarkerShade(challenge?.categoryColor);
 
   return (
     <Pressable
@@ -37,15 +46,15 @@ export default function ChallengeListItem({ challenge, onPress, onDelete }) {
     >
       <View style={styles.content}>
         <View style={styles.leftContent}>
-          <View style={[styles.iconContainer, { backgroundColor: challenge.categoryColor }]}>
+          <View style={[styles.iconContainer, { backgroundColor: challenge?.categoryColor || '#666' }]}>
             <Ionicons 
-              name={challenge.categoryIcon} 
-              size={24} 
-              color={getDarkerShade(challenge.categoryColor)}
+              name={challenge?.categoryIcon || 'help-circle'} 
+              size={20} 
+              color={darkerColor}
             />
           </View>
           <View style={styles.textContainer}>
-            <Text style={styles.title}>{challenge.title}</Text>
+            <Text style={styles.title}>{challenge?.title || 'Untitled Challenge'}</Text>
             <Text style={styles.subtitle}>{daysLeft} days left</Text>
           </View>
         </View>
@@ -66,7 +75,7 @@ export default function ChallengeListItem({ challenge, onPress, onDelete }) {
           style={[
             styles.progressBar, 
             { 
-              backgroundColor: challenge.categoryColor,
+              backgroundColor: challenge?.categoryColor || '#666',
               width: `${progress * 100}%`
             }
           ]} 
@@ -102,10 +111,10 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
   },
   textContainer: {
     justifyContent: 'center',
+    marginLeft: 12,
   },
   title: {
     fontSize: 18,

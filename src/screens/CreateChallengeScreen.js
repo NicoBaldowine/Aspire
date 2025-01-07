@@ -40,6 +40,8 @@ export default function CreateChallengeScreen({ navigation }) {
           onPress: async () => {
             const newChallenge = {
               ...challenge,
+              categoryColor: challenge.color,
+              categoryIcon: challenge.icon,
               startDate: new Date().toISOString(),
               id: Date.now().toString(),
               isActive: true,
@@ -78,7 +80,6 @@ export default function CreateChallengeScreen({ navigation }) {
           />
         )}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContent}
       />
     </View>
   );
@@ -95,13 +96,13 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#fff',
     marginBottom: 24,
-    paddingHorizontal: 16,
+    paddingHorizontal: 24,
   },
   searchInput: {
     backgroundColor: '#222',
     borderRadius: 12,
     padding: 16,
-    marginHorizontal: 16,
+    marginHorizontal: 24,
     marginBottom: 24,
     fontSize: 16,
     color: '#fff',
@@ -110,10 +111,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#666',
     marginBottom: 16,
-    paddingHorizontal: 16,
+    paddingHorizontal: 24,
     letterSpacing: 0.5,
-  },
-  listContent: {
-    paddingHorizontal: 16,
   },
 }); 
