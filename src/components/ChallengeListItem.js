@@ -23,18 +23,31 @@ export default function ChallengeListItem({ challenge, onPress, onDelete }) {
   };
 
   const calculateProgress = () => {
-    if (!challenge?.startDate) return { progress: 0, daysLeft: 21 };
+    const completedCount = challenge?.completedDays?.length || 0;
+    const progress = completedCount / 21;
+    const daysLeft = 21 - completedCount;
 
-    const startDate = new Date(challenge.startDate);
-    const now = new Date();
-    const daysPassed = Math.floor((now - startDate) / (1000 * 60 * 60 * 24));
-    const progress = Math.min(daysPassed / 21, 1);
-    const daysLeft = Math.max(21 - daysPassed, 0);
-    return { progress, daysLeft };
+    return { 
+      progress: Math.min(progress, 1),
+      daysLeft: Math.max(daysLeft, 0)
+    };
   };
 
   const { progress, daysLeft } = calculateProgress();
   const darkerColor = getDarkerShade(challenge?.categoryColor);
+
+  const canMarkComplete = () => {
+    if (!challenge?.startDate || !challenge?.completedDays) return false;
+    
+    const lastCompletedDate = challenge.completedDays.length > 0 
+      ? new Date(challenge.completedDays[challenge.completedDays.length - 1]) 
+      : new Date(challenge.startDate);
+    
+    const nextAvailableDate = new Date(lastCompletedDate);
+    nextAvailableDate.setMinutes(nextAvailableDate.getMinutes() + 5); // Using 5 minutes for testing
+    
+    return new Date() >= nextAvailableDate;
+  };
 
   return (
     <Pressable
@@ -44,6 +57,7 @@ export default function ChallengeListItem({ challenge, onPress, onDelete }) {
       ]}
       onPress={onPress}
     >
+      {canMarkComplete() && <View style={styles.notificationDot} />}
       <View style={styles.content}>
         <View style={styles.leftContent}>
           <View style={[styles.iconContainer, { backgroundColor: challenge?.categoryColor || '#666' }]}>
@@ -140,5 +154,15 @@ const styles = StyleSheet.create({
   progressBar: {
     height: '100%',
     opacity: 0.8,
+  },
+  notificationDot: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#FF3B30',
+    zIndex: 1,
   },
 }); 

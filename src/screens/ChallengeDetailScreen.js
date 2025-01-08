@@ -1,6 +1,7 @@
 import { StyleSheet, View, Text, Pressable, SafeAreaView, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useChallengeTimer } from '../utils/challengeTimeManager';
 import { updateChallenge } from '../utils/storage';
 import * as Notifications from 'expo-notifications';
 
@@ -15,62 +16,10 @@ Notifications.setNotificationHandler({
 
 export default function ChallengeDetailScreen({ navigation, route }) {
   const challenge = route.params?.challenge;
-  const [timeLeft, setTimeLeft] = useState('');
-  const [canMarkComplete, setCanMarkComplete] = useState(false);
   const [completedDays, setCompletedDays] = useState(challenge?.completedDays || []);
+  const { timeLeft, canMarkComplete } = useChallengeTimer(challenge, completedDays);
   const currentDay = (completedDays.length + 1);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      if (!challenge?.startDate) return;
-
-      const start = new Date(challenge.startDate);
-      const now = new Date();
-      const lastCompletedDate = completedDays.length > 0 
-        ? new Date(completedDays[completedDays.length - 1]) 
-        : start;
-
-      // Calculate when the next day can be marked
-      const nextAvailableDate = new Date(lastCompletedDate);
-      nextAvailableDate.setHours(nextAvailableDate.getHours() + 24);
-
-      const timeDiff = nextAvailableDate - now;
-
-      if (timeDiff <= 0) {
-        setCanMarkComplete(true);
-        setTimeLeft('');
-      } else {
-        setCanMarkComplete(false);
-        // Convert milliseconds to hours and minutes
-        const hours = Math.floor(timeDiff / (1000 * 60 * 60));
-        const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
-        setTimeLeft(`${hours}hr ${minutes}min to mark as completed`);
-      }
-    }, 60000); // Update every minute
-
-    // Initial check
-    const start = new Date(challenge?.startDate);
-    const now = new Date();
-    const lastCompletedDate = completedDays.length > 0 
-      ? new Date(completedDays[completedDays.length - 1]) 
-      : start;
-    const nextAvailableDate = new Date(lastCompletedDate);
-    nextAvailableDate.setHours(nextAvailableDate.getHours() + 24);
-    const timeDiff = nextAvailableDate - now;
-
-    if (timeDiff <= 0) {
-      setCanMarkComplete(true);
-      setTimeLeft('');
-    } else {
-      setCanMarkComplete(false);
-      const hours = Math.floor(timeDiff / (1000 * 60 * 60));
-      const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
-      setTimeLeft(`${hours}hr ${minutes}min to mark as completed`);
-    }
-
-    return () => clearInterval(timer);
-  }, [challenge?.startDate, completedDays]);
 
   const handleMarkDay = async () => {
     if (!canMarkComplete) return;
@@ -229,11 +178,16 @@ export default function ChallengeDetailScreen({ navigation, route }) {
                   key={day}
                   style={[
                     styles.dayCircle,
-                    completedDays.includes(day) && styles.completedDay,
+                    completedDays.length >= day && styles.completedDay,
                     currentDay === day && styles.currentDay,
                   ]}
                 >
-                  <Text style={[styles.dayText, completedDays.includes(day) && styles.activeText]}>
+                  <Text 
+                    style={[
+                      styles.dayText, 
+                      completedDays.length >= day && { color: challenge.categoryColor }
+                    ]}
+                  >
                     {day}
                   </Text>
                 </View>
@@ -246,11 +200,16 @@ export default function ChallengeDetailScreen({ navigation, route }) {
                   key={day}
                   style={[
                     styles.dayCircle,
-                    completedDays.includes(day) && styles.completedDay,
+                    completedDays.length >= day && styles.completedDay,
                     currentDay === day && styles.currentDay,
                   ]}
                 >
-                  <Text style={[styles.dayText, completedDays.includes(day) && styles.activeText]}>
+                  <Text 
+                    style={[
+                      styles.dayText, 
+                      completedDays.length >= day && { color: challenge.categoryColor }
+                    ]}
+                  >
                     {day}
                   </Text>
                 </View>
@@ -263,11 +222,16 @@ export default function ChallengeDetailScreen({ navigation, route }) {
                   key={day}
                   style={[
                     styles.dayCircle,
-                    completedDays.includes(day) && styles.completedDay,
+                    completedDays.length >= day && styles.completedDay,
                     currentDay === day && styles.currentDay,
                   ]}
                 >
-                  <Text style={[styles.dayText, completedDays.includes(day) && styles.activeText]}>
+                  <Text 
+                    style={[
+                      styles.dayText, 
+                      completedDays.length >= day && { color: challenge.categoryColor }
+                    ]}
+                  >
                     {day}
                   </Text>
                 </View>
@@ -306,7 +270,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 2,
+    paddingHorizontal: 6,
   },
   closeButton: {
     padding: 16,
@@ -349,12 +313,12 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(0, 0, 0, 0.1)',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   completedDay: {
-    backgroundColor: '#fff',
+    backgroundColor: '#FFFFFF',
   },
   currentDay: {
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
@@ -366,8 +330,8 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: 'rgba(255, 255, 255, 0.6)',
   },
-  activeText: {
-    color: '#fff',
+  completedDayText: {
+    color: '#000',
   },
   markButton: {
     backgroundColor: '#191900',
