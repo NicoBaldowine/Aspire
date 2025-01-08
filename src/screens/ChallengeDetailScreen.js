@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useChallengeTimer } from '../utils/challengeTimeManager';
 import { updateChallenge } from '../utils/storage';
 import * as Notifications from 'expo-notifications';
+import DayCompletionModal from '../components/DayCompletionModal';
 
 // Configure notifications
 Notifications.setNotificationHandler({
@@ -20,11 +21,20 @@ export default function ChallengeDetailScreen({ navigation, route }) {
   const { timeLeft, canMarkComplete } = useChallengeTimer(challenge, completedDays);
   const currentDay = (completedDays.length + 1);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedDay, setSelectedDay] = useState(null);
 
   const handleMarkDay = async () => {
     if (!canMarkComplete) return;
+    setModalVisible(true);
+  };
 
-    const newCompletedDays = [...completedDays, new Date().toISOString()];
+  const handleSaveNote = async (note) => {
+    const newCompletedDays = [...completedDays, {
+      date: new Date().toISOString(),
+      note: note
+    }];
+    
     setCompletedDays(newCompletedDays);
 
     // Update challenge in storage
@@ -33,6 +43,17 @@ export default function ChallengeDetailScreen({ navigation, route }) {
       completedDays: newCompletedDays,
     };
     await updateChallenge(updatedChallenge);
+  };
+
+  const handleDayPress = (day) => {
+    if (completedDays.length >= day) {
+      const dayData = completedDays[day - 1];
+      Alert.alert(
+        `Day ${day}`,
+        dayData.note || 'No notes for this day',
+        [{ text: 'OK' }]
+      );
+    }
   };
 
   const handleDisabledButtonPress = async () => {
@@ -174,7 +195,8 @@ export default function ChallengeDetailScreen({ navigation, route }) {
           <View style={styles.daysGrid}>
             <View style={styles.row}>
               {firstRow.map(day => (
-                <View
+                <Pressable
+                  onPress={() => handleDayPress(day)}
                   key={day}
                   style={[
                     styles.dayCircle,
@@ -182,21 +204,17 @@ export default function ChallengeDetailScreen({ navigation, route }) {
                     currentDay === day && styles.currentDay,
                   ]}
                 >
-                  <Text 
-                    style={[
-                      styles.dayText, 
-                      completedDays.length >= day && { color: challenge.categoryColor }
-                    ]}
-                  >
+                  <Text style={[styles.dayText, completedDays.length >= day && { color: challenge.categoryColor }]}>
                     {day}
                   </Text>
-                </View>
+                </Pressable>
               ))}
             </View>
             
             <View style={styles.row}>
               {secondRow.map(day => (
-                <View
+                <Pressable
+                  onPress={() => handleDayPress(day)}
                   key={day}
                   style={[
                     styles.dayCircle,
@@ -204,21 +222,17 @@ export default function ChallengeDetailScreen({ navigation, route }) {
                     currentDay === day && styles.currentDay,
                   ]}
                 >
-                  <Text 
-                    style={[
-                      styles.dayText, 
-                      completedDays.length >= day && { color: challenge.categoryColor }
-                    ]}
-                  >
+                  <Text style={[styles.dayText, completedDays.length >= day && { color: challenge.categoryColor }]}>
                     {day}
                   </Text>
-                </View>
+                </Pressable>
               ))}
             </View>
             
             <View style={styles.row}>
               {thirdRow.map(day => (
-                <View
+                <Pressable
+                  onPress={() => handleDayPress(day)}
                   key={day}
                   style={[
                     styles.dayCircle,
@@ -226,15 +240,10 @@ export default function ChallengeDetailScreen({ navigation, route }) {
                     currentDay === day && styles.currentDay,
                   ]}
                 >
-                  <Text 
-                    style={[
-                      styles.dayText, 
-                      completedDays.length >= day && { color: challenge.categoryColor }
-                    ]}
-                  >
+                  <Text style={[styles.dayText, completedDays.length >= day && { color: challenge.categoryColor }]}>
                     {day}
                   </Text>
-                </View>
+                </Pressable>
               ))}
             </View>
           </View>
@@ -255,6 +264,12 @@ export default function ChallengeDetailScreen({ navigation, route }) {
           </Text>
         </Pressable>
       </SafeAreaView>
+
+      <DayCompletionModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        onSave={handleSaveNote}
+      />
     </View>
   );
 }

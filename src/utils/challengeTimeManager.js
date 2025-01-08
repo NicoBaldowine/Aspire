@@ -11,12 +11,12 @@ export const useChallengeTimer = (challenge, completedDays) => {
       const start = new Date(challenge.startDate);
       const now = new Date();
       const lastCompletedDate = completedDays.length > 0 
-        ? new Date(completedDays[completedDays.length - 1]) 
+        ? new Date(completedDays[completedDays.length - 1].date || completedDays[completedDays.length - 1]) 
         : start;
 
       // Calculate when the next day can be marked
       const nextAvailableDate = new Date(lastCompletedDate);
-      nextAvailableDate.setMinutes(lastCompletedDate.getMinutes() + 5); // Using 5 minutes for testing
+      nextAvailableDate.setMinutes(nextAvailableDate.getMinutes() + 5); // Using 5 minutes for testing
 
       const timeDiff = nextAvailableDate - now;
 

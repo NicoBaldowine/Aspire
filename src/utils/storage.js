@@ -46,11 +46,11 @@ export const removeChallenge = async (challengeId) => {
   }
 };
 
-export const updateChallenge = async (updatedChallenge) => {
+export const updateChallenge = async (challenge) => {
   try {
     const challenges = await getChallenges();
-    const updatedChallenges = challenges.map(challenge => 
-      challenge.id === updatedChallenge.id ? updatedChallenge : challenge
+    const updatedChallenges = challenges.map(c => 
+      c.id === challenge.id ? challenge : c
     );
     await AsyncStorage.setItem(CHALLENGES_KEY, JSON.stringify(updatedChallenges));
   } catch (error) {
